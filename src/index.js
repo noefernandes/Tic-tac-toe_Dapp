@@ -1,4 +1,5 @@
-import React from 'react';
+/* global BigInt */
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import Web3 from 'web3';
@@ -55,8 +56,14 @@ class Game extends React.Component {
             squares: Array(9).fill(null),
             web3: null,
             account: null,
-            contracts: {}
+            contracts: {},
+            username: "",
+            usernameDisplay: "",
+            bet: "",
+            betDisplay: ""
         };
+
+        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     componentDidMount(){
@@ -69,13 +76,13 @@ class Game extends React.Component {
               const accounts = await window.ethereum.request({ // Requisita primeiro acesso ao Metamask
                 method: "eth_requestAccounts",
               });
-              this.state.account = accounts[0];
+              this.setState({ account: accounts[0] });
               window.ethereum.on('accountsChanged', this.updateAccount); // Atualiza se o usuário trcar de conta no Metamaslk
             } catch (error) {
               console.error("Usuário negou acesso ao web3!");
               return;
             }
-            this.state.web3 = new Web3(window.ethereum);
+            this.setState({ web3: new Web3(window.ethereum) });
         } else {
             console.error("Instalar MetaMask!");
             return;
@@ -88,25 +95,34 @@ class Game extends React.Component {
 
     //Atualiza a conta ativa no metamax
     async updateAccount(){
-        this.state.account = (await this.state.web3.eth.getAccounts())[0];
+        this.setState({ account: (await this.state.web3.eth.getAccounts())[0] });
     }
 
     // Associa ao endereço do seu contrato
     async initContract () {
-        console.log(abi);
-        this.state.contracts.Jogo = new this.state.web3.eth.Contract(abi, contractAddress);
+        var newContracts = {...this.state.contracts};
+        newContracts.Jogo = new this.state.web3.eth.Contract(abi, contractAddress);
+        this.setState({ contracts: newContracts });
     }
 
     handleClick(i){
-        this.setState({ squares: Array(9).fill( Math.floor(Math.random() * (10 - 1 + 1)) + 1 ) });
+        //this.setState({ squares: Array(9).fill( Math.floor(Math.random() * (10 - 1 + 1)) + 1 ) });
+        console.log(this.state.contracts.Jogo.methods.mostrarTabuleiro().call());
     }
 
-    handleChange(e){
-
+    //Função que atualiza as informações no lado direito da tela
+    updateInfo(){
+        this.setState({ usernameDisplay: this.setState.username });
+        this.setState({ betDisplay: this.setState.bet });
+        console.log(this.state.usernameDisplay);
+        console.log(this.state.betDisplay);
     }
 
     handleSubmit(e){
         e.preventDefault();
+        const betValue = parseInt(this.state.bet)*100000000000000000;
+        console.log(this.state.contracts.Jogo.methods.pagarJogo(this.state.username)
+                        .send({from: this.state.account, value: betValue}).then(this.updateInfo));
     }
     
     render() {
@@ -124,14 +140,17 @@ class Game extends React.Component {
                     <form onSubmit={this.handleSubmit}>
                         <label>
                             Nome:
-                            <input type="text" value={this.state.value} onChange={this.handleChange} />
                         </label>
-                        <input type="submit" value="Enviar" />
+                        <input type="text" 
+                               onChange={e => {this.setState({ username: e.target.value })}} />
+                        
+                        <input type="text" 
+                               onChange={e => {this.setState({ bet: e.target.value })}} />
                     
-                        <h2>Vez do jogador: rt4d9</h2>
-                        <h2>Valor apostado por rt4d9: x ether</h2>
+                        <h2>Vez do jogador: {this.state.usernameDisplay}</h2>
+                        <h2>Valor apostado por {this.state.usernameDisplay}: {this.state.betDisplay}</h2>
                         <h2>Prêmio total: x ether</h2>
-                        <button className="button">Iniciar Partida</button>
+                        <button type="submit" className="button">Iniciar Partida</button>
                     </form>
                 </div>
             </div>
