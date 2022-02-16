@@ -1,8 +1,33 @@
-var abi = [
+const abi = [
 	{
 		"inputs": [],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "nome",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "end",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "status",
+				"type": "bool"
+			}
+		],
+		"name": "Pagamento",
+		"type": "event"
 	},
 	{
 		"inputs": [],
@@ -104,9 +129,9 @@ var abi = [
 		"name": "verifyPagamento",
 		"outputs": [
 			{
-				"internalType": "string",
+				"internalType": "bool",
 				"name": "",
-				"type": "string"
+				"type": "bool"
 			}
 		],
 		"stateMutability": "view",
