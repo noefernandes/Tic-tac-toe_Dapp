@@ -6,7 +6,7 @@ import abi from './abi';
 
 
 const { utils } = require('ethers');
-const contractAddress = "0x579733de8e0B0511577e2D7489bFBA87Dc5590D2";
+const contractAddress = "0x142e307Ddcf94AB4DCd28c01cD7D8258f9Fa72aB";
 
 function Square(props) {
     return (
@@ -25,7 +25,6 @@ class Board extends React.Component {
     }
 
     render() {
-        //const status = 'Next player: Y';
 
         return (
         <div>
@@ -67,6 +66,7 @@ class Game extends React.Component {
         };
 
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.payWinner = this.payWinner.bind(this);
     }
 
     componentDidMount(){
@@ -117,14 +117,14 @@ class Game extends React.Component {
             
             if(result.length > 1){
 
-                if(result['0'].returnValues.end === currentAddress){
+                if(result[result.length-2].returnValues.end === currentAddress){
                     //var address = result['0'].returnValues.end;
                     //var status = result['0'].returnValues.status;
-                    name = result['0'].returnValues.nome;
-                }else if(result['1'].returnValues.end === currentAddress){
+                    name = result[result.length-2].returnValues.nome;
+                }else if(result[result.length-1].returnValues.end === currentAddress){
                     //var address = result['1'].returnValues.end;
                     //var status = result['1'].returnValues.status;
-                    name = result['1'].returnValues.nome;
+                    name = result[result.length-1].returnValues.nome;
                 }
             }
             
@@ -165,12 +165,12 @@ class Game extends React.Component {
         this.state.contracts.Jogo.methods.verificarVitoria().call().then( result => {
 
             if(result === this.state.username){
-                this.setState({ gameState: result + " venceu", disabled: false });
+                this.setState({ gameState: result, disabled: false });
                 //console.log(this.state.disabled);
             }else if(result === "O jogo ainda nao acabou"){
                 this.setState({ gameState: result });
             }else{
-                this.setState({ gameState: result + " venceu" });
+                this.setState({ gameState: result });
             }
         });
     }
@@ -218,9 +218,31 @@ class Game extends React.Component {
 
     payWinner(e){
         e.preventDefault();
+
+        this.state.contracts.Jogo.methods.verificarVitoria().call().then( result => {
+
+            if(result === this.state.username){
+                this.setState({ gameState: result, disabled: false });
+                //console.log(this.state.disabled);
+            }else if(result === "O jogo ainda nao acabou"){
+                this.setState({ gameState: result });
+            }else{
+                this.setState({ gameState: result });
+            }
+        });
+        
+
+
+        if(this.state.username === this.state.gameState){
+
+            this.state.contracts.Jogo.methods.pagarOVencedor(this.state.gameState)
+                .send({from: this.state.account}).then(result => {
+                });
+        }
     }
     
     render() {
+
         return (
         <div>
             <div className="header">Jogo da Velha</div>
