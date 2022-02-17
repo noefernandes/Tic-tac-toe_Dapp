@@ -4,8 +4,9 @@ import './index.css';
 import Web3 from 'web3';
 import abi from './abi';
 
+
 const { utils } = require('ethers');
-const contractAddress = "0xE35F211e96C6C22f6010CDF6167879F307AdC7fe";
+const contractAddress = "0x579733de8e0B0511577e2D7489bFBA87Dc5590D2";
 
 function Square(props) {
     return (
@@ -58,9 +59,11 @@ class Game extends React.Component {
             account: null,
             contracts: {},
             username: "",
-            usernameDisplay: "",
+            lastPlayer: "",
             bet: "",
-            betDisplay: ""
+            totalBet: "",
+            gameState: "",
+            disabled: true
         };
 
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -72,6 +75,8 @@ class Game extends React.Component {
         this.lookupInterval = setInterval(() => {
         
             this.mostrarTabuleiro();
+            this.verificarVitoria();
+            this.atualizarQuadro();
 
          }, 500)
     }
@@ -109,15 +114,18 @@ class Game extends React.Component {
         this.state.contracts.Jogo.getPastEvents("Pagamento", { fromBlock: 0, toBlock: 'latest' }).then((result) => {
             var name = "";
             var currentAddress = utils.getAddress(this.state.web3.currentProvider.selectedAddress);
+            
+            if(result.length > 1){
 
-            if(result['0'].returnValues.end === currentAddress){
-                //var address = result['0'].returnValues.end;
-                //var status = result['0'].returnValues.status;
-                name = result['0'].returnValues.nome;
-            }else if(result['1'].returnValues.end === currentAddress){
-                //var address = result['1'].returnValues.end;
-                //var status = result['1'].returnValues.status;
-                name = result['1'].returnValues.nome;
+                if(result['0'].returnValues.end === currentAddress){
+                    //var address = result['0'].returnValues.end;
+                    //var status = result['0'].returnValues.status;
+                    name = result['0'].returnValues.nome;
+                }else if(result['1'].returnValues.end === currentAddress){
+                    //var address = result['1'].returnValues.end;
+                    //var status = result['1'].returnValues.status;
+                    name = result['1'].returnValues.nome;
+                }
             }
             
             this.setState({ username: name.toString(), usernameDisplay: name.toString() });
@@ -153,6 +161,30 @@ class Game extends React.Component {
         });
     }
 
+    verificarVitoria(){
+        this.state.contracts.Jogo.methods.verificarVitoria().call().then( result => {
+
+            if(result === this.state.username){
+                this.setState({ gameState: result + " venceu", disabled: false });
+                //console.log(this.state.disabled);
+            }else if(result === "O jogo ainda nao acabou"){
+                this.setState({ gameState: result });
+            }else{
+                this.setState({ gameState: result + " venceu" });
+            }
+        });
+    }
+
+    atualizarQuadro(){
+        this.state.contracts.Jogo.methods.mostrarPremioTotal().call().then( result => {
+            this.setState({ totalBet: result})
+        });
+
+        this.state.contracts.Jogo.methods.mostrarUltimoJogador().call().then( result => {
+            this.setState({ lastPlayer: result})
+        });
+    }
+
     sleep = (milliseconds) => {
         return new Promise(resolve => setTimeout(resolve, milliseconds))
     }
@@ -165,7 +197,6 @@ class Game extends React.Component {
                 this.state.contracts.Jogo.methods.fazerJogada(this.state.username, i)
                 .send({ from: this.state.account }).then( result => {
             
-                    // eslint-disable-next-line
                     this.state.contracts.Jogo.methods.mostrarTabuleiro().call().then(result => {
                     });
                 });
@@ -173,22 +204,20 @@ class Game extends React.Component {
         });
 
         this.mostrarTabuleiro();
+
     }
 
-    //Função que atualiza as informações no lado direito da tela
-    updateInfo(){
-        this.setState({ usernameDisplay: this.state.username });
-        this.setState({ betDisplay: this.state.bet });
-    }
 
     handleSubmit(e){
         e.preventDefault();
         const betValue = parseInt(this.state.bet)*100000000000000000;
         this.state.contracts.Jogo.methods.pagarJogo(this.state.username)
             .send({from: this.state.account, value: betValue}).then(result => {
-                //console.log(result);
-                this.updateInfo();
             });
+    }
+
+    payWinner(e){
+        e.preventDefault();
     }
     
     render() {
@@ -221,10 +250,15 @@ class Game extends React.Component {
                                onChange={e => {this.setState({ bet: e.target.value })}} />
 
                         <button type="submit" className="button">Inscrever usuário</button>
-
-                        <h2>Vez do jogador: {this.state.usernameDisplay}</h2>
-                        <h2>Valor apostado por {this.state.usernameDisplay}: {this.state.betDisplay}</h2>
-                        <h2>Prêmio total: x ether</h2>
+                    </form>
+                    <form onSubmit={this.payWinner}>
+                        <h2>Jogador: {this.state.username}</h2>
+                        <h2>Ultimo a jogar: {this.state.lastPlayer}</h2>
+                        <h2>Prêmio total: {this.state.totalBet/1000000000000000000} ether</h2>
+                        <h2>Resultado: {this.state.gameState} </h2>
+                        <button type="submit" disabled={this.state.disabled} 
+                                style={{backgroundColor: this.state.disabled ? '#CCC' : '#4CAF50' }} 
+                                className="button">Resgatar prêmio</button>
                     </form>
                 </div>
             </div>

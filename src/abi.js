@@ -62,12 +62,38 @@ const abi = [
 	},
 	{
 		"inputs": [],
+		"name": "mostrarPremioTotal",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
 		"name": "mostrarTabuleiro",
 		"outputs": [
 			{
 				"internalType": "uint256[9]",
 				"name": "",
 				"type": "uint256[9]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "mostrarUltimoJogador",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
 			}
 		],
 		"stateMutability": "view",

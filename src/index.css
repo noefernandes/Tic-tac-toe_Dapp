@@ -21,15 +21,15 @@ ol, ul {
     background: #fff;
     border: 3px solid #999;
     float: left;
-    font-size: 40px;
+    font-size: 80px;
     font-weight: bold;
     line-height: 34px;
-    height: 250px;
+    height: 225px;
     margin-right: -1px;
     margin-top: -1px;
     padding: 0;
     text-align: center;
-    width: 250px;
+    width: 225px;
 }
 
 .square:focus {
@@ -83,7 +83,9 @@ ol, ul {
 
 
 
-
+  form{
+      margin-top: 30px;
+  }
 
   input[type=text], select {
     width: 100%;
